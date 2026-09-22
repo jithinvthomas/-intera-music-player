@@ -3,7 +3,8 @@ name: Build Intera Music IPA
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -11,6 +12,7 @@ permissions:
 jobs:
   build:
     runs-on: macos-14
+
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -20,6 +22,10 @@ jobs:
 
       - name: Generate Xcode project
         run: xcodegen generate
+
+      - name: Make project compatible with Xcode 15
+        run: |
+          sed -i '' 's/objectVersion = 77;/objectVersion = 60;/' InteraMusicPlayer.xcodeproj/project.pbxproj
 
       - name: Build unsigned iOS archive
         run: |
