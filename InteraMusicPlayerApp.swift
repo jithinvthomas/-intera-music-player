@@ -6,7 +6,12 @@ struct InteraMusicPlayerApp: App {
     @StateObject private var player = AudioPlayerModel()
 
     init() {
-        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .music, options: [.allowAirPlay, .allowBluetoothA2DP])
+        try? AVAudioSession.sharedInstance().setCategory(
+            .playback,
+            mode: .default,
+            options: [.allowAirPlay, .allowBluetoothA2DP]
+        )
+
         try? AVAudioSession.sharedInstance().setActive(true)
     }
 
@@ -14,7 +19,9 @@ struct InteraMusicPlayerApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(player)
-                .onOpenURL { url in player.openIncomingFile(url) }
+                .onOpenURL { url in
+                    player.openIncomingFile(url)
+                }
         }
     }
 }
