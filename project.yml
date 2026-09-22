@@ -4,12 +4,10 @@ options:
   deploymentTarget:
     iOS: 16.0
   bundleIdPrefix: com.interaauditsolutions
-  createIntermediateGroups: true
 
 settings:
   base:
     SWIFT_VERSION: 5.0
-    DEVELOPMENT_TEAM: ""
 
 targets:
   InteraMusicPlayer:
@@ -17,11 +15,11 @@ targets:
     platform: iOS
     deploymentTarget: 16.0
     sources:
-      - path: InteraMusicPlayer
-        excludes:
-          - Info.plist
+      - AudioPlayerModel.swift
+      - ContentView.swift
+      - InteraMusicPlayerApp.swift
     info:
-      path: InteraMusicPlayer/Info.plist
+      path: Info.plist
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.interaauditsolutions.music
