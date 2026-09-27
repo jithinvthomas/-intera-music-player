@@ -73,12 +73,12 @@ struct ContentView: View {
                     Label("Open audio file", systemImage: "music.note")
                 }
             } label: {
-                Image(systemName: "line.3.horizontal")
+                Label("Music menu", systemImage: "line.3.horizontal")
+                    .labelStyle(.iconOnly)
                     .font(.title2)
                     .foregroundStyle(.cyan)
                     .frame(width: 44, height: 44)
             }
-            .accessibilityLabel("Music menu")
             VStack(alignment: .leading, spacing: 3) {
                 Text("INTERA")
                     .font(.system(size: 13, weight: .bold, design: .rounded))
@@ -158,7 +158,7 @@ struct ContentView: View {
 
     private var playlist: some View {
         LazyVStack(alignment: .leading, spacing: 10) {
-            Text("PLAYLIST Â· \(player.tracks.count) tracks")
+            Text("PLAYLIST Ã‚Â· \(player.tracks.count) tracks")
                 .font(.caption.bold()).tracking(1.5).foregroundStyle(.secondary)
             if player.tracks.isEmpty {
                 Text("Open the menu at the top left and choose a folder containing music.")
