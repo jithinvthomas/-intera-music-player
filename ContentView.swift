@@ -92,14 +92,22 @@ struct ContentView: View {
 
     private func artwork(height: CGFloat) -> some View {
         VStack(spacing: 16) {
-            Image("InteraLogo")
-                .resizable()
-                .scaledToFit()
-                .padding(16)
-                .frame(maxWidth: .infinity)
-                .frame(height: height)
-                .background(Color.white, in: RoundedRectangle(cornerRadius: 24))
-                .accessibilityLabel("Intera Audit Solutions")
+            Group {
+                if let image = player.currentArtwork {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .accessibilityLabel("Album artwork")
+                } else {
+                    Image("InteraSymbol")
+                        .resizable()
+                        .scaledToFit()
+                        .accessibilityLabel("Intera logo")
+                }
+            }
+            .frame(height: height)
+            .clipShape(RoundedRectangle(cornerRadius: 24))
+            .frame(maxWidth: .infinity)
             VStack(spacing: 4) {
                 Text(player.currentTrack?.title ?? "Choose your music folder")
                     .font(.title3.bold())

@@ -1,4 +1,5 @@
 import XCTest
+import Combine
 @testable import InteraMusic
 
 @MainActor
@@ -24,6 +25,38 @@ final class AudioPlayerModelTests: XCTestCase {
         let player = AudioPlayerModel()
         player.chooseFolder(folder)
         XCTAssertEqual(Set(player.tracks.map { $0.url.lastPathComponent }), ["root.mp3", "song.M4A"])
+    }
+
+    func testReadsEmbeddedArtworkFromAudioFile() async throws {
+        let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "with-artwork", withExtension: "mp3"))
+        let image = await AudioPlayerModel.embeddedArtwork(at: url)
+        XCTAssertNotNil(image)
+    }
+
+    func testFileWithoutArtworkUsesFallback() async throws {
+        let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "without-artwork", withExtension: "mp3"))
+        let image = await AudioPlayerModel.embeddedArtwork(at: url)
+        XCTAssertNil(image)
+    }
+
+    func testChangingSongClearsPreviousArtwork() async throws {
+        let covered = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "with-artwork", withExtension: "mp3"))
+        let plain = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "without-artwork", withExtension: "mp3"))
+        let player = AudioPlayerModel()
+        let loaded = expectation(description: "Song artwork loads")
+        let subscription = player.$currentArtwork.compactMap { $0 }.first().sink { _ in loaded.fulfill() }
+        defer { subscription.cancel(); player.pause() }
+        player.openIncomingFile(covered)
+        await fulfillment(of: [loaded], timeout: 10)
+        XCTAssertNotNil(player.currentArtwork)
+        player.openIncomingFile(plain)
+        XCTAssertNil(player.currentArtwork)
+    }
+
+    func testAppContainsHomeScreenIcon() {
+        let icons = Bundle.main.object(forInfoDictionaryKey: "CFBundleIcons") as? [String: Any]
+        let primary = icons?["CFBundlePrimaryIcon"] as? [String: Any]
+        XCTAssertEqual(primary?["CFBundleIconName"] as? String, "AppIcon")
     }
 
     func testUnreadableFolderReportsFailure() {

@@ -1,6 +1,7 @@
 import Foundation
 import AVFoundation
 import MediaPlayer
+import UIKit
 
 struct Track: Identifiable, Equatable {
     let id = UUID()
@@ -19,9 +20,11 @@ final class AudioPlayerModel: NSObject, ObservableObject, AVAudioPlayerDelegate 
     @Published var shuffle = false
     @Published var repeatTrack = false
     @Published var errorMessage: String?
+    @Published private(set) var currentArtwork: UIImage?
 
     private var audio: AVAudioPlayer?
     private var timer: Timer?
+    private var artworkTask: Task<Void, Never>?
     // Keep the selected folder/file accessible for the entire playlist lifetime.
     private var scopedURL: URL?
     private let extensions = ["mp3", "m4a", "wav", "aac", "flac", "aiff", "caf"]
@@ -31,18 +34,34 @@ final class AudioPlayerModel: NSObject, ObservableObject, AVAudioPlayerDelegate 
     func chooseFolder(_ url: URL) {
         let hasScope = url.startAccessingSecurityScopedResource()
         do {
-            let urls = try FileManager.default.contentsOfDirectory(
-                at: url, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles]
-            )
-            let selected = try urls.filter {
-                guard extensions.contains($0.pathExtension.lowercased()) else { return false }
-                return try $0.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true
-            }.sorted {
-                $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending
+            let values = try url.resourceValues(forKeys: [.isDirectoryKey])
+            guard values.isDirectory == true else { throw CocoaError(.fileReadUnknown) }
+            var scanError: Error?
+            guard let enumerator = FileManager.default.enumerator(
+                at: url,
+                includingPropertiesForKeys: [.isRegularFileKey, .isSymbolicLinkKey],
+                options: [.skipsHiddenFiles, .skipsPackageDescendants],
+                errorHandler: { _, error in
+                    scanError = error
+                    return false
+                }
+            ) else { throw CocoaError(.fileReadUnknown) }
+            var urls: [URL] = []
+            for case let fileURL as URL in enumerator {
+                guard extensions.contains(fileURL.pathExtension.lowercased()) else { continue }
+                let values = try fileURL.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey])
+                if values.isRegularFile == true && values.isSymbolicLink != true {
+                    urls.append(fileURL)
+                }
+            }
+            if let scanError { throw scanError }
+            let selected = urls.sorted {
+                let order = $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent)
+                return order == .orderedSame ? $0.path < $1.path : order == .orderedAscending
             }.map(Track.init)
             replaceSelection(with: selected, url: url, hasScope: hasScope, name: url.lastPathComponent)
             if tracks.isEmpty {
-                errorMessage = "No supported audio files were found in this folder. Choose the folder that contains your songs."
+                errorMessage = "No supported audio files were found in this folder or its subfolders. Choose the folder that contains your songs."
             } else {
                 prepare(index: 0)
             }
@@ -67,6 +86,8 @@ final class AudioPlayerModel: NSObject, ObservableObject, AVAudioPlayerDelegate 
     private func replaceSelection(with selected: [Track], url: URL, hasScope: Bool, name: String) {
         pause()
         audio = nil
+        artworkTask?.cancel()
+        currentArtwork = nil
         scopedURL?.stopAccessingSecurityScopedResource()
         scopedURL = hasScope ? url : nil
         tracks = selected
@@ -82,6 +103,8 @@ final class AudioPlayerModel: NSObject, ObservableObject, AVAudioPlayerDelegate 
         guard tracks.indices.contains(index) else { return }
         pause()
         audio = nil
+        artworkTask?.cancel()
+        currentArtwork = nil
         duration = 0
         progress = 0
         currentIndex = index
@@ -96,10 +119,38 @@ final class AudioPlayerModel: NSObject, ObservableObject, AVAudioPlayerDelegate 
             }
             audio = prepared
             duration = prepared.duration
+            loadArtwork(for: tracks[index])
         } catch {
             errorMessage = "Unable to play this song: \(error.localizedDescription). If it is stored in iCloud, download it in Files and try again."
         }
         updateNowPlaying()
+    }
+
+    static func embeddedArtwork(at url: URL) async -> UIImage? {
+        do {
+            let metadata = try await AVURLAsset(url: url).load(.commonMetadata)
+            let artworkItems = AVMetadataItem.metadataItems(
+                from: metadata, filteredByIdentifier: .commonIdentifierArtwork
+            )
+            for item in artworkItems {
+                try Task.checkCancellation()
+                if let data = try await item.load(.dataValue), let image = UIImage(data: data) {
+                    return image
+                }
+            }
+        } catch {
+            // Artwork is optional; a missing or unreadable image must not stop music.
+        }
+        return nil
+    }
+
+    private func loadArtwork(for track: Track) {
+        artworkTask = Task { [weak self] in
+            let image = await Self.embeddedArtwork(at: track.url)
+            guard !Task.isCancelled, let self, self.currentTrack?.id == track.id else { return }
+            self.currentArtwork = image
+            self.updateNowPlaying()
+        }
     }
 
     func play() {
@@ -144,6 +195,7 @@ final class AudioPlayerModel: NSObject, ObservableObject, AVAudioPlayerDelegate 
     private func stopTimer() { timer?.invalidate(); timer = nil }
 
     deinit {
+        artworkTask?.cancel()
         timer?.invalidate()
         scopedURL?.stopAccessingSecurityScopedResource()
     }
@@ -154,12 +206,16 @@ final class AudioPlayerModel: NSObject, ObservableObject, AVAudioPlayerDelegate 
 
     private func updateNowPlaying() {
         guard let track = currentTrack else { return }
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = [
+        var info: [String: Any] = [
             MPMediaItemPropertyTitle: track.title,
             MPMediaItemPropertyAlbumTitle: "Intera Music",
             MPNowPlayingInfoPropertyElapsedPlaybackTime: progress,
             MPMediaItemPropertyPlaybackDuration: duration,
             MPNowPlayingInfoPropertyPlaybackRate: isPlaying ? 1.0 : 0.0
         ]
+        if let image = currentArtwork {
+            info[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+        }
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
     }
 }
