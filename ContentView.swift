@@ -158,7 +158,7 @@ struct ContentView: View {
 
     private var playlist: some View {
         LazyVStack(alignment: .leading, spacing: 10) {
-            Text("PLAYLIST Ã‚Â· \(player.tracks.count) tracks")
+            Text("PLAYLIST | \(player.tracks.count) tracks")
                 .font(.caption.bold()).tracking(1.5).foregroundStyle(.secondary)
             if player.tracks.isEmpty {
                 Text("Open the menu at the top left and choose a folder containing music.")
