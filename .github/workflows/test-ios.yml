@@ -1,0 +1,29 @@
+﻿name: Test iPhone app
+on:
+  push:
+    branches:
+      - fix/iphone-layout-folder-picker
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  simulator:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        run: xcodegen generate
+      - name: Select available iPhone simulator
+        run: |
+          DEVICE_ID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(v["udid"] for k,vs in d["devices"].items() if "iOS" in k for v in vs if "iPhone" in v["name"]))')
+          echo "DEVICE_ID=$DEVICE_ID" >> "$GITHUB_ENV"
+      - name: Build and test without packaging an IPA
+        run: |
+          xcodebuild test             -project InteraMusicPlayer.xcodeproj             -scheme InteraMusicPlayer             -destination "platform=iOS Simulator,id=$DEVICE_ID"             -resultBundlePath TestResults.xcresult             CODE_SIGNING_ALLOWED=NO
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: iPhone-test-results
+          path: TestResults.xcresult

@@ -4,5 +4,7 @@
 <key>CFBundleDisplayName</key><string>Intera Music</string>
 <key>CFBundleIdentifier</key><string>com.interaauditsolutions.music</string>
 <key>CFBundleDocumentTypes</key><array><dict><key>CFBundleTypeName</key><string>Audio Files</string><key>LSHandlerRank</key><string>Owner</string><key>LSItemContentTypes</key><array><string>public.audio</string></array></dict></array>
+<key>UILaunchScreen</key><dict/>
+<key>LSSupportsOpeningDocumentsInPlace</key><true/>
 <key>UIBackgroundModes</key><array><string>audio</string></array>
 </dict></plist>

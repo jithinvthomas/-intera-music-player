@@ -18,6 +18,7 @@ targets:
       - AudioPlayerModel.swift
       - ContentView.swift
       - InteraMusicPlayerApp.swift
+      - Assets.xcassets
     info:
       path: Info.plist
     settings:
@@ -26,3 +27,37 @@ targets:
         PRODUCT_NAME: InteraMusic
         TARGETED_DEVICE_FAMILY: "1"
         SUPPORTS_MACCATALYST: NO
+
+  InteraMusicPlayerTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: 16.0
+    sources:
+      - AudioPlayerModelTests.swift
+    dependencies:
+      - target: InteraMusicPlayer
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+
+  InteraMusicPlayerUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: 16.0
+    sources:
+      - MusicPlayerUITests.swift
+    dependencies:
+      - target: InteraMusicPlayer
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  InteraMusicPlayer:
+    build:
+      targets:
+        InteraMusicPlayer: all
+    test:
+      targets:
+        - InteraMusicPlayerTests
+        - InteraMusicPlayerUITests
