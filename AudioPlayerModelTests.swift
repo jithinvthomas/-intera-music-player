@@ -3,6 +3,11 @@ import XCTest
 
 @MainActor
 final class AudioPlayerModelTests: XCTestCase {
+    func testBuiltAppKeepsFullScreenLaunchConfiguration() {
+        XCTAssertNotNil(Bundle.main.object(forInfoDictionaryKey: "UILaunchScreen"))
+        XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "LSSupportsOpeningDocumentsInPlace") as? Bool, true)
+    }
+
     func testUnreadableFolderReportsFailure() {
         let player = AudioPlayerModel()
         player.chooseFolder(URL(fileURLWithPath: "/missing-\(UUID().uuidString)"))

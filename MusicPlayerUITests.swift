@@ -1,4 +1,4 @@
-﻿import XCTest
+import XCTest
 
 final class MusicPlayerUITests: XCTestCase {
     func testMenuAndPlayerFitOnScreen() {
@@ -16,5 +16,9 @@ final class MusicPlayerUITests: XCTestCase {
         menu.tap()
         XCTAssertTrue(app.buttons["Choose folder"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["Open audio file"].exists)
+        app.buttons["Choose folder"].tap()
+        XCTAssertTrue(app.buttons["Cancel"].waitForExistence(timeout: 10))
+        app.buttons["Cancel"].tap()
+        XCTAssertTrue(menu.waitForExistence(timeout: 3))
     }
 }

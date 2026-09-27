@@ -21,6 +21,17 @@ targets:
       - Assets.xcassets
     info:
       path: Info.plist
+      properties:
+        CFBundleDisplayName: Intera Music
+        UILaunchScreen: {}
+        LSSupportsOpeningDocumentsInPlace: true
+        UIBackgroundModes:
+          - audio
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Audio Files
+            LSHandlerRank: Owner
+            LSItemContentTypes:
+              - public.audio
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.interaauditsolutions.music
