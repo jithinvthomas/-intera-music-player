@@ -6,6 +6,7 @@ final class MusicPlayerUITests: XCTestCase {
         app.launch()
         let menu = app.buttons["Music menu"]
         XCTAssertTrue(menu.waitForExistence(timeout: 10))
+        print(app.debugDescription)
         XCTAssertTrue(menu.isHittable)
         XCTAssertTrue(app.buttons["Play"].exists)
         XCTAssertTrue(app.frame.contains(app.buttons["Play"].frame))
