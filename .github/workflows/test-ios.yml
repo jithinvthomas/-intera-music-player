@@ -1,4 +1,4 @@
-﻿name: Test iPhone app
+name: Test iPhone app
 on:
   push:
     branches:
@@ -14,7 +14,9 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate project
-        run: xcodegen generate
+        run: |
+          xcodegen generate
+          sed -i '' 's/objectVersion = 77;/objectVersion = 60;/' InteraMusicPlayer.xcodeproj/project.pbxproj
       - name: Select available iPhone simulator
         run: |
           DEVICE_ID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(v["udid"] for k,vs in d["devices"].items() if "iOS" in k for v in vs if "iPhone" in v["name"]))')
