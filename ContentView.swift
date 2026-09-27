@@ -8,21 +8,21 @@ struct ContentView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            ScrollView {
-                VStack(spacing: 20) {
-                    artwork(height: min(250, max(100, geometry.size.height * 0.30)))
-                    controls
-                    playlist
-                }
-                .frame(maxWidth: 560)
-                .frame(maxWidth: .infinity)
-                .padding(20)
-            }
-            .safeAreaInset(edge: .top, spacing: 0) {
+            VStack(spacing: 0) {
                 header
                     .padding(.horizontal, 20)
                     .padding(.vertical, 8)
                     .background(.ultraThinMaterial)
+                ScrollView {
+                    VStack(spacing: 20) {
+                        artwork(height: min(250, max(100, geometry.size.height * 0.30)))
+                        controls
+                        playlist
+                    }
+                    .frame(maxWidth: 560)
+                    .frame(maxWidth: .infinity)
+                    .padding(20)
+                }
             }
         }
         .background {
@@ -158,7 +158,7 @@ struct ContentView: View {
 
     private var playlist: some View {
         LazyVStack(alignment: .leading, spacing: 10) {
-            Text("PLAYLIST · \(player.tracks.count) tracks")
+            Text("PLAYLIST Â· \(player.tracks.count) tracks")
                 .font(.caption.bold()).tracking(1.5).foregroundStyle(.secondary)
             if player.tracks.isEmpty {
                 Text("Open the menu at the top left and choose a folder containing music.")
