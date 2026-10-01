@@ -34,6 +34,7 @@ struct ContentView: View {
                     controls
                     playlist
                 }
+                .modifier(JizaGlassGroup())
                 .frame(maxWidth: 560)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 22)
@@ -111,7 +112,7 @@ struct ContentView: View {
                 Image(systemName: "line.3.horizontal")
                     .font(.title3.weight(.medium))
                     .frame(width: 48, height: 48)
-                    .background { glass(radius: 24) }
+                    .modifier(JizaGlassSurface(radius: 24, interactive: true))
             }
             .accessibilityLabel("Music menu")
         }
@@ -211,7 +212,7 @@ struct ContentView: View {
             .disabled(player.tracks.isEmpty)
         }
         .padding(18)
-        .background { glass(radius: 30) }
+        .modifier(JizaGlassSurface(radius: 30))
     }
 
     private var playlist: some View {
@@ -234,7 +235,7 @@ struct ContentView: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(accent)
-                .background { glass(radius: 20) }
+                .modifier(JizaGlassSurface(radius: 20, interactive: true))
                 Text("Add a folder to bring your songs together, including music in subfolders.")
                     .font(.subheadline)
                     .foregroundStyle(ink.opacity(0.7))
@@ -246,7 +247,7 @@ struct ContentView: View {
                         .autocorrectionDisabled()
                 }
                 .padding(14)
-                .background { glass(radius: 18) }
+                .modifier(JizaGlassSurface(radius: 18))
                 if filteredTracks.isEmpty {
                     Text("No songs match your search.")
                         .font(.subheadline).foregroundStyle(ink.opacity(0.7))
@@ -281,27 +282,67 @@ struct ContentView: View {
         }
     }
 
-    private func glass(radius: CGFloat) -> some View {
-        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
-        return Group {
-            if reduceTransparency {
-                shape.fill(dark ? Color(red: 0.13, green: 0.18, blue: 0.31) : .white)
-            } else {
-                shape.fill(.regularMaterial)
-                    .overlay { shape.fill(.white.opacity(dark ? 0.03 : 0.18)) }
-            }
-        }
-        .overlay {
-            shape.strokeBorder(
-                LinearGradient(colors: [.white.opacity(dark ? 0.5 : 0.95), .white.opacity(0.12)],
-                               startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
-        }
-        .shadow(color: midnight.opacity(dark ? 0.22 : 0.07), radius: 16, y: 8)
-        .accessibilityHidden(true)
-    }
-
     private func format(_ seconds: Double) -> String {
         guard seconds.isFinite else { return "0:00" }
         return "\(Int(seconds) / 60):\(String(format: "%02d", Int(seconds) % 60))"
+    }
+}
+
+
+private struct JizaGlassGroup: ViewModifier {
+    @ViewBuilder func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26.0, *) {
+            GlassEffectContainer(spacing: 12) { content }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
+private struct JizaGlassSurface: ViewModifier {
+    let radius: CGFloat
+    var interactive = false
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var shape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: radius, style: .continuous)
+    }
+
+    @ViewBuilder func body(content: Content) -> some View {
+        if reduceTransparency {
+            content.background {
+                shape.fill(scheme == .dark ? Color(red: 0.13, green: 0.18, blue: 0.31) : .white)
+                    .overlay { shape.strokeBorder(Color.primary.opacity(0.18), lineWidth: 1) }
+            }
+        } else {
+            #if compiler(>=6.2)
+            if #available(iOS 26.0, *) {
+                content.glassEffect(.regular.interactive(interactive && !reduceMotion), in: shape)
+            } else {
+                fallback(content)
+            }
+            #else
+            fallback(content)
+            #endif
+        }
+    }
+
+    private func fallback(_ content: Content) -> some View {
+        content.background {
+            shape.fill(.regularMaterial)
+                .overlay { shape.fill(.white.opacity(scheme == .dark ? 0.03 : 0.18)) }
+                .overlay {
+                    shape.strokeBorder(
+                        LinearGradient(colors: [.white.opacity(0.75), .white.opacity(0.12)],
+                                       startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
+                }
+                .shadow(color: .black.opacity(scheme == .dark ? 0.22 : 0.07), radius: 16, y: 8)
+        }
     }
 }

@@ -9,12 +9,12 @@ Jiza combines Jithin and Elizabeth.
 - Dark-mode controls use a lighter blue for legibility.
 
 ## Materials and typography
-SwiftUI regularMaterial panels, reflective border gradients and soft shadows.
+Native SwiftUI glassEffect panels on iOS 26+, grouped with GlassEffectContainer. Older systems use regularMaterial panels with reflective border gradients and soft shadows.
 Opaque surfaces replace translucency when Reduce Transparency is enabled.
 Native system type with a rounded lowercase jiza heading; text follows Dynamic Type.
 Appearance follows the system by default; Music menu offers System, Light and Dark.
 This implements the approved glassmorphism direction on iOS 16+.
-It does not use the iOS 26-only glassEffect API.
+Release builds require Xcode 26+. Reduce Motion disables interactive glass responses. CI builds and tests both the native iOS 26 path and the older-SDK fallback.
 Reference: https://developer.apple.com/documentation/swiftui/environmentvalues/accessibilityReduceTransparency
 
 ## Files

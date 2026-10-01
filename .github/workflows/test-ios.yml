@@ -1,4 +1,4 @@
-name: Test iPhone app
+name: Test Jiza iPhone app
 on:
   push:
     branches:
@@ -8,9 +8,22 @@ permissions:
   contents: read
 jobs:
   simulator:
-    runs-on: macos-14
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-14, macos-26]
+    runs-on: ${{ matrix.runner }}
+    env:
+      NATIVE_GLASS: ${{ matrix.runner == 'macos-26' }}
     steps:
       - uses: actions/checkout@v4
+      - name: Check Xcode and SDK
+        run: |
+          xcodebuild -version
+          if [ "$NATIVE_GLASS" = "true" ]; then
+            SDK_MAJOR=$(xcrun --sdk iphonesimulator --show-sdk-version | cut -d. -f1)
+            test "$SDK_MAJOR" -ge 26
+          fi
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate project
@@ -19,18 +32,18 @@ jobs:
           sed -i '' 's/objectVersion = 77;/objectVersion = 60;/' InteraMusicPlayer.xcodeproj/project.pbxproj
       - name: Select available iPhone simulator
         run: |
-          DEVICE_ID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(v["udid"] for k,vs in d["devices"].items() if "iOS" in k for v in vs if "iPhone" in v["name"]))')
+          DEVICE_ID=$(xcrun simctl list devices available -j | python3 -c 'import json,os,sys; d=json.load(sys.stdin); native=os.environ["NATIVE_GLASS"]=="true"; print(next(v["udid"] for k,vs in d["devices"].items() if "iOS" in k and (not native or "iOS-26" in k) for v in vs if "iPhone" in v["name"]))')
           echo "DEVICE_ID=$DEVICE_ID" >> "$GITHUB_ENV"
       - name: Build and test without packaging an IPA
         run: |
-          xcodebuild test             -project InteraMusicPlayer.xcodeproj             -scheme InteraMusicPlayer             -destination "platform=iOS Simulator,id=$DEVICE_ID"             -resultBundlePath TestResults.xcresult             CODE_SIGNING_ALLOWED=NO
+          xcodebuild test -project InteraMusicPlayer.xcodeproj -scheme InteraMusicPlayer -destination "platform=iOS Simulator,id=$DEVICE_ID" -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO
       - name: Export simulator screenshots
         if: always()
         run: python3 export_test_images.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: iPhone-test-results
+          name: iPhone-test-results-${{ matrix.runner }}
           path: |
             TestResults.xcresult
             test-images

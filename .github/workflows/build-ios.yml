@@ -1,4 +1,4 @@
-name: Build Intera Music IPA
+name: Build Jiza IPA
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-26
 
     steps:
       - name: Check out source
@@ -23,7 +23,7 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Make project compatible with Xcode 15
+      - name: Normalize project format
         run: |
           sed -i '' 's/objectVersion = 77;/objectVersion = 60;/' InteraMusicPlayer.xcodeproj/project.pbxproj
 

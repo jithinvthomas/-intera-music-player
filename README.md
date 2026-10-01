@@ -62,3 +62,7 @@ Repository: https://github.com/jithinvthomas/Jiza
 
 Library search filters the selected folder without changing the playback queue.
 UI tests capture light, dark and landscape layouts. Real-device checks should include Dynamic Type and Reduce Transparency.
+
+## Native Liquid Glass
+Build releases with Xcode 26 or newer. iOS 26 uses glassEffect and GlassEffectContainer; earlier iOS versions keep the material fallback. Reduce Transparency uses opaque panels and Reduce Motion disables interactive glass reactions. CI tests both paths.
+https://developer.apple.com/documentation/SwiftUI/Applying-Liquid-Glass-to-custom-views
