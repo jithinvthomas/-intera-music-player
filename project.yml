@@ -22,7 +22,7 @@ targets:
     info:
       path: Info.plist
       properties:
-        CFBundleDisplayName: Intera Music
+        CFBundleDisplayName: Jiza
         UILaunchScreen: {}
         LSSupportsOpeningDocumentsInPlace: true
         UIBackgroundModes:

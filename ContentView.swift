@@ -3,6 +3,8 @@ import UniformTypeIdentifiers
 
 struct ContentView: View {
     @EnvironmentObject private var player: AudioPlayerModel
+    private let jade = Color(red: 69 / 255, green: 214 / 255, blue: 172 / 255)
+    private let ivory = Color(red: 246 / 255, green: 245 / 255, blue: 240 / 255)
     @State private var showImporter = false
     @State private var importingFolder = true
 
@@ -26,11 +28,7 @@ struct ContentView: View {
             }
         }
         .background {
-            LinearGradient(
-                colors: [Color(red: 0.03, green: 0.04, blue: 0.12),
-                         Color(red: 0.11, green: 0.02, blue: 0.22)],
-                startPoint: .topLeading, endPoint: .bottomTrailing
-            ).ignoresSafeArea()
+            Color(red: 17 / 255, green: 27 / 255, blue: 33 / 255).ignoresSafeArea()
         }
         .preferredColorScheme(.dark)
         .fileImporter(
@@ -47,7 +45,7 @@ struct ContentView: View {
                 player.errorMessage = "Unable to open your selection: \(error.localizedDescription)"
             }
         }
-        .alert("Music Player", isPresented: Binding(
+        .alert("Jiza", isPresented: Binding(
             get: { player.errorMessage != nil },
             set: { if !$0 { player.errorMessage = nil } }
         )) {
@@ -76,14 +74,14 @@ struct ContentView: View {
                 Label("Music menu", systemImage: "line.3.horizontal")
                     .labelStyle(.iconOnly)
                     .font(.title2)
-                    .foregroundStyle(.cyan)
+                    .foregroundStyle(jade)
                     .frame(width: 44, height: 44)
             }
             VStack(alignment: .leading, spacing: 3) {
-                Text("INTERA")
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
-                    .tracking(4)
-                    .foregroundStyle(.cyan)
+                Text("jiza")
+                    .font(.system(size: 25, weight: .semibold, design: .rounded))
+                    .tracking(1)
+                    .foregroundStyle(jade)
                 Text("Music Player").font(.headline)
             }
             Spacer(minLength: 0)
@@ -99,10 +97,10 @@ struct ContentView: View {
                         .scaledToFit()
                         .accessibilityLabel("Album artwork")
                 } else {
-                    Image("InteraSymbol")
+                    Image("JizaSymbol")
                         .resizable()
                         .scaledToFit()
-                        .accessibilityLabel("Intera logo")
+                        .accessibilityLabel("Jiza logo")
                 }
             }
             .frame(height: height)
@@ -124,7 +122,7 @@ struct ContentView: View {
         VStack(spacing: 10) {
             Slider(value: Binding(get: { player.progress }, set: { player.seek($0) }),
                    in: 0...max(player.duration, 1))
-                .tint(.cyan)
+                .tint(jade)
                 .disabled(player.duration == 0)
                 .accessibilityLabel("Playback position")
             HStack {
@@ -146,18 +144,18 @@ struct ContentView: View {
                     Image(systemName: "forward.fill").frame(width: 44, height: 44)
                 }.accessibilityLabel("Next track")
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(ivory)
             .disabled(player.tracks.isEmpty)
             HStack {
                 Button { player.shuffle.toggle() } label: {
                     Image(systemName: "shuffle")
-                        .foregroundStyle(player.shuffle ? .cyan : .secondary)
+                        .foregroundStyle(player.shuffle ? jade : .secondary)
                         .frame(width: 44, height: 44)
                 }.accessibilityLabel(player.shuffle ? "Shuffle on" : "Shuffle off")
                 Spacer()
                 Button { player.repeatTrack.toggle() } label: {
                     Image(systemName: "repeat")
-                        .foregroundStyle(player.repeatTrack ? .cyan : .secondary)
+                        .foregroundStyle(player.repeatTrack ? jade : .secondary)
                         .frame(width: 44, height: 44)
                 }.accessibilityLabel(player.repeatTrack ? "Repeat on" : "Repeat off")
             }
@@ -185,11 +183,11 @@ struct ContentView: View {
                         Spacer()
                         if index == player.currentIndex {
                             Image(systemName: player.isPlaying ? "waveform" : "pause")
-                                .foregroundStyle(.cyan)
+                                .foregroundStyle(jade)
                         }
                     }
                     .frame(minHeight: 44)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(ivory)
                 }.buttonStyle(.plain)
             }
         }

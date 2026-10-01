@@ -1,10 +1,10 @@
-# Intera Music Player
+# Jiza
 
 ## iPhone fixes
 - Top-left menu offers Choose folder and Open audio file.
 - The background fills the display; the menu respects the safe area and content scrolls on short screens.
-- The home-screen icon uses the Intera symbol without wording.
-- The player displays embedded song artwork, with the Intera symbol as the fallback.
+- The home-screen icon uses the jade Jiza monogram without wording.
+- The player displays embedded song artwork, with the Jiza monogram as the fallback.
 - Folder/file security access is retained until the selection changes.
 - Import and playback failures display an explanation.
 - Folder selection includes supported audio in subfolders, skips hidden files and symbolic links, and retains distinct files with matching names.
@@ -28,12 +28,10 @@ Real iPhone folder-provider permissions require a device test.
   recursive folder discovery, and the built app's home-screen icon registration.
 - On your iPhone, choose a parent folder containing songs in nested folders.
 - Switch between songs with and without embedded cover art. The previous cover must clear.
-- After installing, confirm the home-screen icon shows only the Intera symbol.
+- After installing, confirm the home-screen icon shows the Jiza monogram.
 
-The icon was adapted from the supplied Intera brand image using the built-in image tool.
-Prompt: isolate the existing globe/orbit/document-checkmark symbol from the right-hand icon,
-preserve its colors and identity, remove all wording and divider lines, center on an opaque
-deep navy square with no exterior rounded corners. The output was resized into Apple's icon sizes.
+The Jiza monogram was generated with the built-in image tool and exported into Apple's icon sizes.
+See Brand/IDENTITY.md for the original prompt and colour specification.
 
 ## Folder memory and calls
 - A selected folder is saved as an iOS bookmark and restored once on launch, without autoplay.
@@ -56,3 +54,8 @@ deep navy square with no exterior rounded corners. The output was resized into A
 
 Reference: https://developer.apple.com/documentation/avfaudio/handling-audio-interruptions
 Reference: https://developer.apple.com/documentation/uikit/providing-access-to-directories
+
+## Jiza identity
+The app uses a jade J/Z monogram, midnight charcoal background and ivory text.
+See [Brand/IDENTITY.md](Brand/IDENTITY.md) for colours, assets and generation prompts.
+Repository: https://github.com/jithinvthomas/Jiza

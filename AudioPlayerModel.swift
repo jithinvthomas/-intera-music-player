@@ -302,7 +302,7 @@ final class AudioPlayerModel: NSObject, ObservableObject, AVAudioPlayerDelegate 
         guard let track = currentTrack else { return }
         var info: [String: Any] = [
             MPMediaItemPropertyTitle: track.title,
-            MPMediaItemPropertyAlbumTitle: "Intera Music",
+            MPMediaItemPropertyAlbumTitle: "Jiza",
             MPNowPlayingInfoPropertyElapsedPlaybackTime: progress,
             MPMediaItemPropertyPlaybackDuration: duration,
             MPNowPlayingInfoPropertyPlaybackRate: isPlaying ? 1.0 : 0.0
