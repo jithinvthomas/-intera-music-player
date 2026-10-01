@@ -8,9 +8,9 @@
 
 ## Approved identity: Jiza
 Jiza combines Jithin and Elizabeth. The user selected Jiza as the app and repository name.
-Logo: a fused J/Z monogram with a forward-facing opening.
-Theme: midnight charcoal #111B21, jade #45D6AC, ivory #F6F5F0 and slate #A8B7BD.
-The dark theme is applied to the current player; an ivory light mode is a later option.
+Logo: two offset frosted doorway panels on cobalt.
+Theme: Cobalt Glass; cobalt #315BEB, ice #EFF3FF and midnight #17203D.
+The current player supports system, light and dark appearance with translucent controls.
 Brand/IDENTITY.md records the assets, prompts and colour usage.
 Use a descriptive App Store subtitle as future features ship.
 

@@ -3,34 +3,49 @@ import UniformTypeIdentifiers
 
 struct ContentView: View {
     @EnvironmentObject private var player: AudioPlayerModel
-    private let jade = Color(red: 69 / 255, green: 214 / 255, blue: 172 / 255)
-    private let ivory = Color(red: 246 / 255, green: 245 / 255, blue: 240 / 255)
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @AppStorage("jizaAppearance") private var appearance = "system"
     @State private var showImporter = false
     @State private var importingFolder = true
+    @State private var search = ""
+
+    private let cobalt = Color(red: 49 / 255, green: 91 / 255, blue: 235 / 255)
+    private let midnight = Color(red: 23 / 255, green: 32 / 255, blue: 61 / 255)
+    private let ice = Color(red: 239 / 255, green: 243 / 255, blue: 1)
+    private var dark: Bool { appearance == "dark" || (appearance == "system" && scheme == .dark) }
+    private var ink: Color { dark ? .white : midnight }
+    private var accent: Color { dark ? Color(red: 0.57, green: 0.70, blue: 1) : cobalt }
+    private var preferredScheme: ColorScheme? {
+        appearance == "system" ? nil : (appearance == "dark" ? .dark : .light)
+    }
+    private var filteredTracks: [(offset: Int, element: Track)] {
+        Array(player.tracks.enumerated()).filter {
+            search.isEmpty || $0.element.title.localizedCaseInsensitiveContains(search)
+        }
+    }
 
     var body: some View {
         GeometryReader { geometry in
-            VStack(spacing: 0) {
-                header
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 8)
-                    .background(.ultraThinMaterial)
-                ScrollView {
-                    VStack(spacing: 20) {
-                        artwork(height: min(250, max(100, geometry.size.height * 0.30)))
-                        controls
-                        playlist
-                    }
-                    .frame(maxWidth: 560)
-                    .frame(maxWidth: .infinity)
-                    .padding(20)
+            ScrollView {
+                VStack(spacing: 22) {
+                    header
+                    artwork(height: min(270, max(130, geometry.size.height * 0.29)))
+                    controls
+                    playlist
                 }
+                .frame(maxWidth: 560)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 22)
+                .padding(.top, 12)
+                .padding(.bottom, 28)
             }
+            .scrollDismissesKeyboard(.interactively)
         }
-        .background {
-            Color(red: 17 / 255, green: 27 / 255, blue: 33 / 255).ignoresSafeArea()
-        }
-        .preferredColorScheme(.dark)
+        .foregroundStyle(ink)
+        .background { backdrop.ignoresSafeArea() }
+        .preferredColorScheme(preferredScheme)
+        .tint(accent)
         .fileImporter(
             isPresented: $showImporter,
             allowedContentTypes: importingFolder ? [.folder] : [.audio],
@@ -39,6 +54,7 @@ struct ContentView: View {
             switch result {
             case .success(let urls):
                 guard let url = urls.first else { return }
+                search = ""
                 if importingFolder { player.chooseFolder(url) }
                 else { player.openIncomingFile(url) }
             case .failure(let error):
@@ -55,8 +71,24 @@ struct ContentView: View {
         }
     }
 
+    private var backdrop: some View {
+        ZStack {
+            dark ? midnight : ice
+            if !reduceTransparency {
+                RadialGradient(colors: [cobalt.opacity(dark ? 0.55 : 0.19), .clear],
+                               center: .topTrailing, startRadius: 0, endRadius: 500)
+                RadialGradient(colors: [Color.white.opacity(dark ? 0.07 : 0.8), .clear],
+                               center: .leading, startRadius: 0, endRadius: 350)
+            }
+        }
+    }
+
     private var header: some View {
         HStack(spacing: 12) {
+            Text("jiza")
+                .font(.system(.largeTitle, design: .rounded).weight(.bold))
+                .tracking(-1)
+            Spacer()
             Menu {
                 Button {
                     importingFolder = true
@@ -70,26 +102,23 @@ struct ContentView: View {
                 } label: {
                     Label("Open audio file", systemImage: "music.note")
                 }
+                Picker("Appearance", selection: $appearance) {
+                    Text("System").tag("system")
+                    Text("Light").tag("light")
+                    Text("Dark").tag("dark")
+                }
             } label: {
-                Label("Music menu", systemImage: "line.3.horizontal")
-                    .labelStyle(.iconOnly)
-                    .font(.title2)
-                    .foregroundStyle(jade)
-                    .frame(width: 44, height: 44)
+                Image(systemName: "line.3.horizontal")
+                    .font(.title3.weight(.medium))
+                    .frame(width: 48, height: 48)
+                    .background { glass(radius: 24) }
             }
-            VStack(alignment: .leading, spacing: 3) {
-                Text("jiza")
-                    .font(.system(size: 25, weight: .semibold, design: .rounded))
-                    .tracking(1)
-                    .foregroundStyle(jade)
-                Text("Music Player").font(.headline)
-            }
-            Spacer(minLength: 0)
+            .accessibilityLabel("Music menu")
         }
     }
 
     private func artwork(height: CGFloat) -> some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 18) {
             Group {
                 if let image = player.currentArtwork {
                     Image(uiImage: image)
@@ -104,25 +133,29 @@ struct ContentView: View {
                 }
             }
             .frame(height: height)
-            .clipShape(RoundedRectangle(cornerRadius: 24))
-            .frame(maxWidth: .infinity)
-            VStack(spacing: 4) {
-                Text(player.currentTrack?.title ?? "Choose your music folder")
-                    .font(.title3.bold())
+            .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 30, style: .continuous)
+                    .strokeBorder(.white.opacity(0.25), lineWidth: 1)
+            }
+            .shadow(color: cobalt.opacity(dark ? 0.22 : 0.14), radius: 22, y: 12)
+            VStack(spacing: 5) {
+                Text(player.currentTrack?.title ?? "Your music, your space")
+                    .font(.title2.bold())
                     .multilineTextAlignment(.center)
                 Text(player.folderName)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(ink.opacity(0.7))
                     .multilineTextAlignment(.center)
             }
         }
+        .frame(maxWidth: .infinity)
     }
 
     private var controls: some View {
         VStack(spacing: 10) {
             Slider(value: Binding(get: { player.progress }, set: { player.seek($0) }),
                    in: 0...max(player.duration, 1))
-                .tint(jade)
                 .disabled(player.duration == 0)
                 .accessibilityLabel("Playback position")
             HStack {
@@ -130,67 +163,141 @@ struct ContentView: View {
                 Spacer()
                 Text(format(player.duration))
             }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            HStack(spacing: 28) {
-                Button { player.previous() } label: {
-                    Image(systemName: "backward.fill").frame(width: 44, height: 44)
-                }.accessibilityLabel("Previous track")
-                Button { player.togglePlay() } label: {
-                    Image(systemName: player.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                        .font(.system(size: 64))
-                }.accessibilityLabel(player.isPlaying ? "Pause" : "Play")
-                Button { player.next() } label: {
-                    Image(systemName: "forward.fill").frame(width: 44, height: 44)
-                }.accessibilityLabel("Next track")
-            }
-            .foregroundStyle(ivory)
-            .disabled(player.tracks.isEmpty)
-            HStack {
+            .font(.caption.monospacedDigit())
+            .foregroundStyle(ink.opacity(0.7))
+            HStack(spacing: 0) {
                 Button { player.shuffle.toggle() } label: {
                     Image(systemName: "shuffle")
-                        .foregroundStyle(player.shuffle ? jade : .secondary)
-                        .frame(width: 44, height: 44)
-                }.accessibilityLabel(player.shuffle ? "Shuffle on" : "Shuffle off")
-                Spacer()
+                        .foregroundStyle(player.shuffle ? accent : ink.opacity(0.6))
+                        .frame(minWidth: 44, minHeight: 48)
+                }
+                .accessibilityLabel(player.shuffle ? "Shuffle on" : "Shuffle off")
+                .accessibilityValue(player.shuffle ? "On" : "Off")
+                Spacer(minLength: 0)
+                Button { player.previous() } label: {
+                    Image(systemName: "backward.end.fill").frame(width: 44, height: 48)
+                }.accessibilityLabel("Previous track")
+                Spacer(minLength: 0)
+                Button { player.togglePlay() } label: {
+                    Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
+                        .font(.title2.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 68, height: 68)
+                        .background {
+                            Circle().fill(cobalt.gradient)
+                                .overlay {
+                                    Circle().strokeBorder(
+                                        LinearGradient(colors: [.white.opacity(0.9), .white.opacity(0.15)],
+                                                       startPoint: .topLeading, endPoint: .bottomTrailing),
+                                        lineWidth: 1.5)
+                                }
+                                .shadow(color: cobalt.opacity(0.35), radius: 10, y: 5)
+                        }
+                }.accessibilityLabel(player.isPlaying ? "Pause" : "Play")
+                Spacer(minLength: 0)
+                Button { player.next() } label: {
+                    Image(systemName: "forward.end.fill").frame(width: 44, height: 48)
+                }.accessibilityLabel("Next track")
+                Spacer(minLength: 0)
                 Button { player.repeatTrack.toggle() } label: {
                     Image(systemName: "repeat")
-                        .foregroundStyle(player.repeatTrack ? jade : .secondary)
-                        .frame(width: 44, height: 44)
-                }.accessibilityLabel(player.repeatTrack ? "Repeat on" : "Repeat off")
+                        .foregroundStyle(player.repeatTrack ? accent : ink.opacity(0.6))
+                        .frame(minWidth: 44, minHeight: 48)
+                }
+                .accessibilityLabel(player.repeatTrack ? "Repeat on" : "Repeat off")
+                .accessibilityValue(player.repeatTrack ? "On" : "Off")
+            }
+            .buttonStyle(.plain)
+            .disabled(player.tracks.isEmpty)
+        }
+        .padding(18)
+        .background { glass(radius: 30) }
+    }
+
+    private var playlist: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("Your library").font(.title2.bold())
+                Spacer()
+                Text("\(player.tracks.count) tracks")
+                    .font(.caption)
+                    .foregroundStyle(ink.opacity(0.65))
+            }
+            if player.tracks.isEmpty {
+                Button {
+                    importingFolder = true
+                    showImporter = true
+                } label: {
+                    Label("Choose music folder", systemImage: "folder.badge.plus")
+                        .font(.body.weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: 52)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(accent)
+                .background { glass(radius: 20) }
+                Text("Add a folder to bring your songs together, including music in subfolders.")
+                    .font(.subheadline)
+                    .foregroundStyle(ink.opacity(0.7))
+            } else {
+                HStack {
+                    Image(systemName: "magnifyingglass").foregroundStyle(ink.opacity(0.6))
+                    TextField("Search your music", text: $search)
+                        .accessibilityLabel("Search your music")
+                        .autocorrectionDisabled()
+                }
+                .padding(14)
+                .background { glass(radius: 18) }
+                if filteredTracks.isEmpty {
+                    Text("No songs match your search.")
+                        .font(.subheadline).foregroundStyle(ink.opacity(0.7))
+                }
+                LazyVStack(spacing: 0) {
+                    ForEach(filteredTracks, id: \.element.id) { index, track in
+                        Button {
+                            player.prepare(index: index)
+                            player.play()
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: index == player.currentIndex ? "waveform" : "music.note")
+                                    .font(.body.weight(.medium))
+                                    .foregroundStyle(accent)
+                                    .frame(width: 44, height: 44)
+                                    .background(cobalt.opacity(0.10), in: RoundedRectangle(cornerRadius: 12))
+                                Text(track.title).font(.body.weight(.medium)).lineLimit(2)
+                                Spacer(minLength: 8)
+                                if index == player.currentIndex {
+                                    Image(systemName: player.isPlaying ? "speaker.wave.2.fill" : "pause.fill")
+                                        .foregroundStyle(accent)
+                                }
+                            }
+                            .frame(minHeight: 64)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        Divider().overlay(ink.opacity(0.06))
+                    }
+                }
             }
         }
     }
 
-    private var playlist: some View {
-        LazyVStack(alignment: .leading, spacing: 10) {
-            Text("PLAYLIST | \(player.tracks.count) tracks")
-                .font(.caption.bold()).tracking(1.5).foregroundStyle(.secondary)
-            if player.tracks.isEmpty {
-                Text("Open the menu at the top left and choose a folder containing music.")
-                    .font(.subheadline).foregroundStyle(.secondary)
-            }
-            ForEach(Array(player.tracks.enumerated()), id: \.element.id) { index, track in
-                Button {
-                    player.prepare(index: index)
-                    player.play()
-                } label: {
-                    HStack {
-                        Text(String(format: "%02d", index + 1))
-                            .font(.caption.monospaced()).foregroundStyle(.secondary)
-                            .frame(width: 28)
-                        Text(track.title).lineLimit(2)
-                        Spacer()
-                        if index == player.currentIndex {
-                            Image(systemName: player.isPlaying ? "waveform" : "pause")
-                                .foregroundStyle(jade)
-                        }
-                    }
-                    .frame(minHeight: 44)
-                    .foregroundStyle(ivory)
-                }.buttonStyle(.plain)
+    private func glass(radius: CGFloat) -> some View {
+        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+        return Group {
+            if reduceTransparency {
+                shape.fill(dark ? Color(red: 0.13, green: 0.18, blue: 0.31) : .white)
+            } else {
+                shape.fill(.regularMaterial)
+                    .overlay { shape.fill(.white.opacity(dark ? 0.03 : 0.18)) }
             }
         }
+        .overlay {
+            shape.strokeBorder(
+                LinearGradient(colors: [.white.opacity(dark ? 0.5 : 0.95), .white.opacity(0.12)],
+                               startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
+        }
+        .shadow(color: midnight.opacity(dark ? 0.22 : 0.07), radius: 16, y: 8)
+        .accessibilityHidden(true)
     }
 
     private func format(_ seconds: Double) -> String {

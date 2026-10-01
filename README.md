@@ -3,8 +3,8 @@
 ## iPhone fixes
 - Top-left menu offers Choose folder and Open audio file.
 - The background fills the display; the menu respects the safe area and content scrolls on short screens.
-- The home-screen icon uses the jade Jiza monogram without wording.
-- The player displays embedded song artwork, with the Jiza monogram as the fallback.
+- The home-screen icon uses the cobalt doorway symbol without wording.
+- The player displays embedded song artwork, with the Jiza doorway symbol as the fallback.
 - Folder/file security access is retained until the selection changes.
 - Import and playback failures display an explanation.
 - Folder selection includes supported audio in subfolders, skips hidden files and symbolic links, and retains distinct files with matching names.
@@ -28,9 +28,9 @@ Real iPhone folder-provider permissions require a device test.
   recursive folder discovery, and the built app's home-screen icon registration.
 - On your iPhone, choose a parent folder containing songs in nested folders.
 - Switch between songs with and without embedded cover art. The previous cover must clear.
-- After installing, confirm the home-screen icon shows the Jiza monogram.
+- After installing, confirm the home-screen icon shows the Jiza doorway symbol.
 
-The Jiza monogram was generated with the built-in image tool and exported into Apple's icon sizes.
+The Jiza doorway symbol was generated with the built-in image tool and exported into Apple's icon sizes.
 See Brand/IDENTITY.md for the original prompt and colour specification.
 
 ## Folder memory and calls
@@ -56,6 +56,9 @@ Reference: https://developer.apple.com/documentation/avfaudio/handling-audio-int
 Reference: https://developer.apple.com/documentation/uikit/providing-access-to-directories
 
 ## Jiza identity
-The app uses a jade J/Z monogram, midnight charcoal background and ivory text.
+The app uses the Cobalt Glass identity: a frosted doorway logo, ice/midnight backgrounds and translucent playback controls. Appearance follows the system or the Light/Dark choice in the music menu. Reduce Transparency uses opaque panels.
 See [Brand/IDENTITY.md](Brand/IDENTITY.md) for colours, assets and generation prompts.
 Repository: https://github.com/jithinvthomas/Jiza
+
+Library search filters the selected folder without changing the playback queue.
+UI tests capture light, dark and landscape layouts. Real-device checks should include Dynamic Type and Reduce Transparency.

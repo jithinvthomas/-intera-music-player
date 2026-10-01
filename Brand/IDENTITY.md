@@ -1,35 +1,41 @@
-# Jiza identity
+# Jiza — Cobalt Glass
+Approved direction: cobalt doorway logo with frosted translucent surfaces.
+Jiza combines Jithin and Elizabeth.
 
-Jiza combines Jithin and Elizabeth. The approved app name is Jiza.
-Logo: a fused Z/J monogram with a forward-facing opening.
-The mark is intended to work for music, video, files, downloads and browsing.
+## Colours
+- Cobalt #315BEB: brand, primary action, light-mode accent.
+- Ice #EFF3FF: light background.
+- Midnight #17203D: dark background and light-mode text.
+- Dark-mode controls use a lighter blue for legibility.
 
-## Palette
-| Role | Colour | Hex |
-| --- | --- | --- |
-| Dark background | Midnight | #111B21 |
-| Active controls / logo | Jade | #45D6AC |
-| Primary text / light background | Ivory | #F6F5F0 |
-| Secondary text | Slate | #A8B7BD |
+## Materials and typography
+SwiftUI regularMaterial panels, reflective border gradients and soft shadows.
+Opaque surfaces replace translucency when Reduce Transparency is enabled.
+Native system type with a rounded lowercase jiza heading; text follows Dynamic Type.
+Appearance follows the system by default; Music menu offers System, Light and Dark.
+This implements the approved glassmorphism direction on iOS 16+.
+It does not use the iOS 26-only glassEffect API.
+Reference: https://developer.apple.com/documentation/swiftui/environmentvalues/accessibilityReduceTransparency
 
-Use midnight text on jade buttons. In a light theme, use a darker jade (#08775C)
-for text and interactive outlines; bright jade is mainly a fill or decorative accent.
-Use the native iOS system font for UI and a rounded semibold treatment for the jiza wordmark.
-Keep artwork prominent and avoid decorative gradients.
-Tagline for brand material: Play. Save. Explore.
-Future feature names in brand material are a roadmap, not a claim of shipped functionality.
-
-## Assets
-- jiza-icon-source.png: original raster master generated with the built-in image tool.
-- jiza-brand-board.png: identity and UI concept (when available).
-- App icon sizes are exported from the source; preserve the square opaque background.
-- App-facing display name changes to Jiza; the existing bundle identifier is retained
-  so installed-app identity and saved folder preferences are preserved.
+## Files
+- jiza-cobalt-icon-source.png: generated square icon master.
+- jiza-cobalt-glass-board.png: approved visual reference, not an actual app screenshot.
+- Earlier jade assets are retained as historical proposals; they are no longer active.
+- App icon and JizaSymbol use the cobalt master.
 
 ## Generation
 Tool: built-in image_gen.
-### Icon prompt
-Design one finished square iPhone app icon for Jiza, a personal music player growing into video, files, downloads and browsing. Brand name combines Jithin and Elizabeth. Only an original symbol, NO text. Design an exceptionally simple, confident J/Z monogram: a broad geometric diagonal Z-like upper stroke flowing into a softly hooked J lower terminal, united into one compact silhouette. A precise small triangular negative-space opening subtly evokes forward/play. Must read as an intentional letterform, not a lightning bolt, chain, infinity sign or random ribbon. Flat solid bright jade #45D6AC on an opaque full-bleed midnight charcoal #111B21 square. Symbol occupies about 62 percent of canvas, optically centered, ample safe margins. Crisp vector-like edges, uniform confident stroke weight, gently softened corners, iconic at 32 pixels. No gradients, shadows, bevels, gloss, glow, textures, mockup devices, outer rounded square, borders, words, music notes, headphones, globes, downloaded-file icons or feature collage. Premium, friendly, memorable consumer app identity; original design, avoid resemblance to famous app marks. High resolution square icon.
+Icon prompt: Extract the approved cobalt icon only. Preserve the two offset doorway
+panels in frosted white glass on full-bleed cobalt; remove text and exterior rounded
+corners for iOS masking. Keep the symbol recognizable at small sizes.
 
-### Board prompt
-Create a refined landscape brand identity board for 'jiza', the consumer music, video, files and browser app. Use the supplied image as the EXACT logo reference: keep its jade Z/J fused monogram with triangular negative space unchanged and repeat it consistently. Do not invent a different symbol. Name is 'jiza', lowercase rounded geometric sans serif wordmark with careful kerning. Layout is a precise 2 by 3 editorial grid with generous gutters and negative space, 1536x1024, restrained warm ivory and midnight panels. Top-left large logo plus wordmark on midnight charcoal. Top-middle same logo as a beautiful dark iOS app icon, plus tiny monochrome version showing scalability. Right column spans both rows: believable large native iPhone music-player mockup, midnight background, jade controls, warm white type, jiza header, large beautiful dusk-ocean album cover, track title 'Afterglow', artist 'Luna Coast', progress slider and previous/play/next controls; simple library rows below, no browser or download features shown as already live. Bottom-left intentional palette display with readable exact labels: 'Midnight #111B21', 'Jade #45D6AC', 'Ivory #F6F5F0', 'Slate #A8B7BD'. Bottom-middle lowercase wordmark specimen and concise tagline 'Play. Save. Explore.' plus small label 'Brand concept / 01'. Clear visual hierarchy, professional identity presentation, crisp bold logo, sparse readable typography. Overall calm but fresh and attractive, appropriate for music now and broad personal media later. No gradients, no neon glow, no glassmorphism, no unrelated mockups, no extra symbols, no Intera or AVYRO branding.
+Board prompt:
+Create a premium visual design proposal for the iPhone app 'jiza', applying the COBALT logo direction from the supplied reference with a refined liquid-glass / glassmorphism interface. The reference image has three columns: use ONLY the CENTER COBALT identity. Preserve its simple two offset upright doorway panels as the symbol, its lowercase jiza wordmark, cobalt #315BEB, ice #EFF3FF and midnight #17203D. Do NOT use coral, plum, jade, J/Z monograms, or the old number-3 logo.
+
+Landscape 1536x1024 editorial presentation, extremely polished. Left 32 percent: large beautiful app icon and lowercase wordmark 'jiza'. Icon is an opaque cobalt rounded square containing the exact two-panel doorway symbol rendered in luminous frosted white glass, restrained edge refraction and subtle depth, simple recognizable silhouette. Beneath, compact colour swatches cobalt, ice, midnight and the label 'Cobalt / Liquid Glass'. Right 68 percent: two large realistic iPhone screens side by side with generous spacing, one light library and one dark now-playing view, same coherent identity.
+
+LIGHT LIBRARY SCREEN: pale ice background with very subtle softly blurred blue light beneath actual translucent glass layers. Header jiza and small search button. Readable title 'Your music'. Two large album covers and a compact list of music below, tasteful original atmospheric artwork. Floating bottom mini-player with a frosted translucent surface, crisp thin white highlight at top, soft layered shadow, small album cover, song 'Afterglow', and playback controls. Bottom navigation capsule with Library, Folders, Settings. All text sharp navy; cobalt marks active states. Clean iOS spacing and large touch targets.
+
+DARK NOW-PLAYING SCREEN: midnight and cobalt atmospheric backdrop softly influenced by the album artwork, large square dusk coastline album artwork, sharp white song title 'Afterglow', subdued readable artist 'Luna Coast'. A floating translucent glass control tray with progress slider, timestamps and previous/play/next. Large circular glass play/pause control with cobalt interior, delicate reflective edge and crisp white icon. Shuffle and repeat clearly visible. Fine believable refraction along glass boundaries, restrained specular highlights, frosted fill behind text, never blur the content itself. Layers feel like physical glass, not cloudy low-contrast boxes. Add small brand symbol in header.
+
+Overall sophisticated native mobile UI, crisp legibility, realistic material depth, restrained optical distortion, original high-end art direction. No excessive rainbow reflections, no neon outlines, no illegible labels, no fake feature claims, no browsers or download screens. Small footer 'DESIGN CONCEPT'. This is a design reference, not an implemented app screenshot.
