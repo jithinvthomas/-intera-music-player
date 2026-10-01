@@ -34,3 +34,25 @@ The icon was adapted from the supplied Intera brand image using the built-in ima
 Prompt: isolate the existing globe/orbit/document-checkmark symbol from the right-hand icon,
 preserve its colors and identity, remove all wording and divider lines, center on an opaque
 deep navy square with no exterior rounded corners. The output was resized into Apple's icon sizes.
+
+## Folder memory and calls
+- A selected folder is saved as an iOS bookmark and restored once on launch, without autoplay.
+- A new selection replaces the saved folder; opening an individual song keeps the last folder.
+- If access has expired, the app asks you to choose the folder again.
+- Calls pause playback. The same song resumes only if it was playing before the interruption
+  and iOS supplies shouldResume. Pausing or changing the selection cancels pending resume.
+- Audio-session activation happens when playback starts and errors are displayed.
+- Disconnecting headphones pauses playback.
+- Physical volume buttons retain the system volume behavior; no volume interception is installed.
+
+### Required device checks
+1. Choose a local folder, close and relaunch the app: its playlist returns, paused.
+2. Repeat with iCloud and your preferred third-party Files provider, including after reboot.
+3. Remove or revoke access to the saved folder: check the recovery message and choose another.
+4. Play a song, receive and end a call: check same-song position and automatic resume.
+5. Repeat when already paused, and after pressing Pause during the call: music stays paused.
+6. Disconnect wired/Bluetooth headphones, including during a call: no unexpected speaker playback.
+7. Press volume up/down during music: volume changes without changing the selected song.
+
+Reference: https://developer.apple.com/documentation/avfaudio/handling-audio-interruptions
+Reference: https://developer.apple.com/documentation/uikit/providing-access-to-directories

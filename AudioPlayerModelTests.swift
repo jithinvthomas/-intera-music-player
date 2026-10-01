@@ -1,5 +1,6 @@
 import XCTest
 import Combine
+import AVFoundation
 @testable import InteraMusic
 
 @MainActor
@@ -22,7 +23,7 @@ final class AudioPlayerModelTests: XCTestCase {
             at: folder.appendingPathComponent("link.mp3"),
             withDestinationURL: folder.appendingPathComponent("root.mp3")
         )
-        let player = AudioPlayerModel()
+        let (player, _) = isolatedPlayer()
         player.chooseFolder(folder)
         XCTAssertEqual(Set(player.tracks.map { $0.url.lastPathComponent }), ["root.mp3", "song.M4A"])
     }
@@ -42,7 +43,7 @@ final class AudioPlayerModelTests: XCTestCase {
     func testChangingSongClearsPreviousArtwork() async throws {
         let covered = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "with-artwork", withExtension: "mp3"))
         let plain = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "without-artwork", withExtension: "mp3"))
-        let player = AudioPlayerModel()
+        let (player, _) = isolatedPlayer()
         let loaded = expectation(description: "Song artwork loads")
         let subscription = player.$currentArtwork.compactMap { $0 }.first().sink { _ in loaded.fulfill() }
         defer { subscription.cancel(); player.pause() }
@@ -60,7 +61,7 @@ final class AudioPlayerModelTests: XCTestCase {
     }
 
     func testUnreadableFolderReportsFailure() {
-        let player = AudioPlayerModel()
+        let (player, _) = isolatedPlayer()
         player.chooseFolder(URL(fileURLWithPath: "/missing-\(UUID().uuidString)"))
         XCTAssertNotNil(player.errorMessage)
         XCTAssertTrue(player.tracks.isEmpty)
@@ -70,7 +71,7 @@ final class AudioPlayerModelTests: XCTestCase {
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: folder) }
-        let player = AudioPlayerModel()
+        let (player, _) = isolatedPlayer()
         player.progress = 12
         player.duration = 50
         player.isPlaying = true
@@ -87,9 +88,103 @@ final class AudioPlayerModelTests: XCTestCase {
             .appendingPathComponent("\(UUID().uuidString).mp3")
         try Data("invalid audio".utf8).write(to: file)
         defer { try? FileManager.default.removeItem(at: file) }
-        let player = AudioPlayerModel()
+        let (player, _) = isolatedPlayer()
         player.openIncomingFile(file)
         XCTAssertFalse(player.isPlaying)
         XCTAssertNotNil(player.errorMessage)
+    }
+
+    private func isolatedPlayer() -> (AudioPlayerModel, UserDefaults) {
+        let defaults = UserDefaults(suiteName: "InteraTests-\(UUID().uuidString)")!
+        return (AudioPlayerModel(defaults: defaults), defaults)
+    }
+
+    func testLastFolderRestoresWithoutStartingPlayback() throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let fixture = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "without-artwork", withExtension: "mp3"))
+        try FileManager.default.copyItem(at: fixture, to: folder.appendingPathComponent("song.mp3"))
+        let (first, defaults) = isolatedPlayer()
+        first.chooseFolder(folder)
+        let restored = AudioPlayerModel(defaults: defaults)
+        restored.restoreLastFolder()
+        XCTAssertEqual(restored.folderName, folder.lastPathComponent)
+        XCTAssertEqual(restored.tracks.map { $0.title }, ["song"])
+        XCTAssertFalse(restored.isPlaying)
+        XCTAssertNil(restored.errorMessage)
+    }
+
+    func testInvalidBookmarkReportsRecoverableError() {
+        let (player, defaults) = isolatedPlayer()
+        defaults.set(Data("invalid bookmark".utf8), forKey: "lastMusicFolderBookmark")
+        player.restoreLastFolder()
+        XCTAssertTrue(player.tracks.isEmpty)
+        XCTAssertFalse(player.isPlaying)
+        XCTAssertNotNil(player.errorMessage)
+    }
+
+    func testInvalidSelectionKeepsPreviousSavedFolder() throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let (player, defaults) = isolatedPlayer()
+        player.chooseFolder(folder)
+        let bookmark = try XCTUnwrap(defaults.data(forKey: "lastMusicFolderBookmark"))
+        player.chooseFolder(folder.appendingPathComponent("missing"))
+        XCTAssertEqual(defaults.data(forKey: "lastMusicFolderBookmark"), bookmark)
+    }
+
+    private func interruption(_ type: AVAudioSession.InterruptionType,
+                              options: AVAudioSession.InterruptionOptions = []) {
+        NotificationCenter.default.post(name: AVAudioSession.interruptionNotification,
+            object: AVAudioSession.sharedInstance(),
+            userInfo: [AVAudioSessionInterruptionTypeKey: type.rawValue,
+                       AVAudioSessionInterruptionOptionKey: options.rawValue])
+    }
+
+    func testCallPausesAndResumesSameTrack() throws {
+        let (player, _) = isolatedPlayer()
+        let fixture = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "without-artwork", withExtension: "mp3"))
+        player.openIncomingFile(fixture)
+        defer { player.pause() }
+        XCTAssertTrue(player.isPlaying)
+        player.seek(0.1)
+        let track = player.currentTrack
+        interruption(.began)
+        XCTAssertFalse(player.isPlaying)
+        interruption(.ended, options: [.shouldResume])
+        XCTAssertTrue(player.isPlaying)
+        XCTAssertEqual(player.currentTrack, track)
+        XCTAssertEqual(player.progress, 0.1, accuracy: 0.02)
+    }
+
+    func testManualPauseDuringCallCancelsAutomaticResume() throws {
+        let (player, _) = isolatedPlayer()
+        let fixture = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "without-artwork", withExtension: "mp3"))
+        player.openIncomingFile(fixture)
+        interruption(.began)
+        player.pause()
+        interruption(.ended, options: [.shouldResume])
+        XCTAssertFalse(player.isPlaying)
+    }
+
+    func testCallDoesNotResumeWhenSystemWithholdsPermission() throws {
+        let (player, _) = isolatedPlayer()
+        let fixture = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "without-artwork", withExtension: "mp3"))
+        player.openIncomingFile(fixture)
+        interruption(.began)
+        interruption(.ended)
+        XCTAssertFalse(player.isPlaying)
+    }
+
+    func testCallDoesNotStartPreviouslyPausedMusic() throws {
+        let (player, _) = isolatedPlayer()
+        let fixture = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "without-artwork", withExtension: "mp3"))
+        player.openIncomingFile(fixture)
+        player.pause()
+        interruption(.began)
+        interruption(.ended, options: [.shouldResume])
+        XCTAssertFalse(player.isPlaying)
     }
 }

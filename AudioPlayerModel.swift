@@ -29,6 +29,79 @@ final class AudioPlayerModel: NSObject, ObservableObject, AVAudioPlayerDelegate 
     private var scopedURL: URL?
     private let extensions = ["mp3", "m4a", "wav", "aac", "flac", "aiff", "caf"]
 
+
+    private let defaults: UserDefaults
+    private let folderBookmarkKey = "lastMusicFolderBookmark"
+    private var didRestoreFolder = false
+    private var isInterrupted = false
+    private var resumeAfterInterruption = false
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        super.init()
+        NotificationCenter.default.addObserver(self, selector: #selector(handleInterruption(_:)),
+            name: AVAudioSession.interruptionNotification, object: AVAudioSession.sharedInstance())
+        NotificationCenter.default.addObserver(self, selector: #selector(handleRouteChange(_:)),
+            name: AVAudioSession.routeChangeNotification, object: AVAudioSession.sharedInstance())
+    }
+
+    func restoreLastFolder() {
+        guard !didRestoreFolder else { return }
+        didRestoreFolder = true
+        // An incoming file may have opened before the first view appeared.
+        guard tracks.isEmpty, let data = defaults.data(forKey: folderBookmarkKey) else { return }
+        do {
+            var stale = false
+            let url = try URL(resolvingBookmarkData: data, options: [],
+                              relativeTo: nil, bookmarkDataIsStale: &stale)
+            // Successful selection renews the bookmark, including stale bookmarks.
+            chooseFolder(url)
+        } catch {
+            errorMessage = "Your saved folder could not be reopened. Choose it again from the menu."
+        }
+    }
+
+    private func rememberFolder(_ url: URL) {
+        do {
+            let data = try url.bookmarkData(options: .minimalBookmark,
+                                           includingResourceValuesForKeys: nil, relativeTo: nil)
+            defaults.set(data, forKey: folderBookmarkKey)
+        } catch {
+            defaults.removeObject(forKey: folderBookmarkKey)
+            errorMessage = "This folder is open, but its access could not be saved. Choose it again next time."
+        }
+    }
+
+    @objc private func handleInterruption(_ notification: Notification) {
+        guard let rawType = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
+              let type = AVAudioSession.InterruptionType(rawValue: rawType) else { return }
+        switch type {
+        case .began:
+            guard !isInterrupted else { return }
+            let wasPlaying = isPlaying
+            pause()
+            isInterrupted = true
+            resumeAfterInterruption = wasPlaying
+        case .ended:
+            guard isInterrupted else { return }
+            let rawOptions = notification.userInfo?[AVAudioSessionInterruptionOptionKey] as? UInt ?? 0
+            let shouldResume = resumeAfterInterruption &&
+                AVAudioSession.InterruptionOptions(rawValue: rawOptions).contains(.shouldResume)
+            isInterrupted = false
+            resumeAfterInterruption = false
+            if shouldResume { play() }
+        @unknown default:
+            break
+        }
+    }
+
+    @objc nonisolated private func handleRouteChange(_ notification: Notification) {
+        guard let reason = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt,
+              reason == AVAudioSession.RouteChangeReason.oldDeviceUnavailable.rawValue else { return }
+        // Route notifications may arrive on a background thread.
+        Task { @MainActor [weak self] in self?.pause() }
+    }
+
     var currentTrack: Track? { tracks.indices.contains(currentIndex) ? tracks[currentIndex] : nil }
 
     func chooseFolder(_ url: URL) {
@@ -65,6 +138,7 @@ final class AudioPlayerModel: NSObject, ObservableObject, AVAudioPlayerDelegate 
             } else {
                 prepare(index: 0)
             }
+            rememberFolder(url)
         } catch {
             if hasScope { url.stopAccessingSecurityScopedResource() }
             errorMessage = "Unable to read this folder: \(error.localizedDescription)"
@@ -154,7 +228,19 @@ final class AudioPlayerModel: NSObject, ObservableObject, AVAudioPlayerDelegate 
     }
 
     func play() {
-        guard let audio else { return }
+        guard !isInterrupted, let audio else { return }
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback, mode: .default,
+                                    options: [.allowAirPlay, .allowBluetoothA2DP])
+            try session.setActive(true)
+        } catch {
+            errorMessage = "Audio is unavailable: \(error.localizedDescription)"
+            isPlaying = false
+            stopTimer()
+            updateNowPlaying()
+            return
+        }
         guard audio.play() else {
             isPlaying = false
             stopTimer()
@@ -167,7 +253,14 @@ final class AudioPlayerModel: NSObject, ObservableObject, AVAudioPlayerDelegate 
         updateNowPlaying()
     }
 
-    func pause() { audio?.pause(); isPlaying = false; stopTimer(); updateNowPlaying() }
+    func pause() {
+        resumeAfterInterruption = false
+        audio?.pause()
+        if let audio { progress = audio.currentTime }
+        isPlaying = false
+        stopTimer()
+        updateNowPlaying()
+    }
     func togglePlay() { isPlaying ? pause() : play() }
 
     func next() {
@@ -195,6 +288,7 @@ final class AudioPlayerModel: NSObject, ObservableObject, AVAudioPlayerDelegate 
     private func stopTimer() { timer?.invalidate(); timer = nil }
 
     deinit {
+        NotificationCenter.default.removeObserver(self)
         artworkTask?.cancel()
         timer?.invalidate()
         scopedURL?.stopAccessingSecurityScopedResource()
