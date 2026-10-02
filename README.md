@@ -1,7 +1,7 @@
 # Jiza
 
 ## iPhone fixes
-- Top-left menu offers Choose folder and Open audio file.
+- The header menu offers Choose folder, Open audio file and Open video file.
 - The background fills the display; the menu respects the safe area and content scrolls on short screens.
 - The home-screen icon uses the cobalt doorway symbol without wording.
 - The player displays embedded song artwork, with the Jiza doorway symbol as the fallback.
@@ -61,7 +61,17 @@ See [Brand/IDENTITY.md](Brand/IDENTITY.md) for colours, assets and generation pr
 Repository: https://github.com/jithinvthomas/Jiza
 
 Library search filters the selected folder without changing the playback queue.
-UI tests capture light, dark and landscape layouts. Real-device checks should include Dynamic Type and Reduce Transparency.
+UI tests cover the light layout, folder/video pickers and rotation back to portrait. Real-device checks should include dark appearance, Dynamic Type and Reduce Transparency.
+
+## Video playback
+- Choose **Open video file** from the header menu, then select a downloaded video in Files.
+- Videos open in a full-screen viewer with native play/pause and seeking controls. Tap Done to return to music.
+- Opening a video pauses music and cancels any pending music resume. Starting music closes the video.
+- File access stays active during loading and playback. Closing the viewer releases it and prevents late loading from starting playback.
+- Playback uses device-supported video codecs. MP4/MOV containers can still contain unsupported codecs; unreadable or unsupported media shows a recovery message.
+- This first video build does not include a video folder library, saved viewing positions or Picture in Picture.
+- Tests use a generated three-second H.264/AAC MP4 to check readiness, seeking, music handoff and cleanup, plus invalid-file and cancellation cases.
+- On an iPhone, test a local MP4 and MOV, an iCloud video, portrait/landscape, calls and Bluetooth disconnection. Native AVPlayer handles video interruptions; real-call behavior still needs device verification.
 
 ## Native Liquid Glass
 Build releases with Xcode 26 or newer. iOS 26 uses glassEffect and GlassEffectContainer; earlier iOS versions keep the material fallback. Reduce Transparency uses opaque panels and Reduce Motion disables interactive glass reactions. CI tests both paths.

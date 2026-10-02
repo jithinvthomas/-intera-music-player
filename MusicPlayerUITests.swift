@@ -1,6 +1,29 @@
 import XCTest
 
 final class MusicPlayerUITests: XCTestCase {
+    func testLandscapeAndReturnToPortrait() {
+        let app = XCUIApplication()
+        XCUIDevice.shared.orientation = .portrait
+        app.launch()
+        defer {
+            app.terminate()
+            XCUIDevice.shared.orientation = .portrait
+        }
+        let menu = app.buttons["Music menu"]
+        XCTAssertTrue(menu.waitForExistence(timeout: 10))
+        XCUIDevice.shared.orientation = .landscapeLeft
+        let landscape = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            app.frame.width > app.frame.height && app.frame.contains(menu.frame) && menu.isHittable
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [landscape], timeout: 10), .completed)
+        capture(app, name: "Jiza Landscape")
+        XCUIDevice.shared.orientation = .portrait
+        let portrait = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            app.frame.height > app.frame.width && app.frame.contains(menu.frame) && menu.isHittable
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [portrait], timeout: 10), .completed)
+    }
+
     func testMenuAndPlayerFitOnScreen() {
         let app = XCUIApplication()
         app.launchArguments = ["-jizaAppearance", "light"]

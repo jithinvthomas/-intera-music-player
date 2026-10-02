@@ -27,6 +27,10 @@ targets:
         CFBundleDisplayName: Jiza
         UILaunchScreen: {}
         LSSupportsOpeningDocumentsInPlace: true
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
         UIBackgroundModes:
           - audio
         CFBundleDocumentTypes:
