@@ -28,9 +28,15 @@ jobs:
           sed -i '' 's/objectVersion = 77;/objectVersion = 60;/' InteraMusicPlayer.xcodeproj/project.pbxproj
 
       - name: Build unsigned iOS archive
+        # Dependencies must be integrated before using the workspace.
+        run: |
+          brew list cocoapods >/dev/null 2>&1 || brew install cocoapods
+          pod install
+
+      - name: Archive app
         run: |
           xcodebuild archive \
-            -project InteraMusicPlayer.xcodeproj \
+            -workspace InteraMusicPlayer.xcworkspace \
             -scheme InteraMusicPlayer \
             -sdk iphoneos \
             -configuration Release \

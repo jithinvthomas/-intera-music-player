@@ -31,12 +31,18 @@ jobs:
           xcodegen generate
           sed -i '' 's/objectVersion = 77;/objectVersion = 60;/' InteraMusicPlayer.xcodeproj/project.pbxproj
       - name: Select available iPhone simulator
+        # CocoaPods provides the official checksum-verified VLCKit XCFramework.
         run: |
           DEVICE_ID=$(xcrun simctl list devices available -j | python3 -c 'import json,os,sys; d=json.load(sys.stdin); native=os.environ["NATIVE_GLASS"]=="true"; print(next(v["udid"] for k,vs in d["devices"].items() if "iOS" in k and (not native or "iOS-26" in k) for v in vs if "iPhone" in v["name"]))')
           echo "DEVICE_ID=$DEVICE_ID" >> "$GITHUB_ENV"
+      - name: Install playback framework
+        run: |
+          brew list cocoapods >/dev/null 2>&1 || brew install cocoapods
+          pod install
+          cat Podfile.lock
       - name: Build and test without packaging an IPA
         run: |
-          xcodebuild test -project InteraMusicPlayer.xcodeproj -scheme InteraMusicPlayer -destination "platform=iOS Simulator,id=$DEVICE_ID" -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO
+          xcodebuild test -workspace InteraMusicPlayer.xcworkspace -scheme InteraMusicPlayer -destination "platform=iOS Simulator,id=$DEVICE_ID" -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO
       - name: Export simulator screenshots
         if: always()
         run: python3 export_test_images.py
@@ -47,3 +53,4 @@ jobs:
           path: |
             TestResults.xcresult
             test-images
+            Podfile.lock
