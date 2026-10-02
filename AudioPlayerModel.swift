@@ -231,8 +231,9 @@ final class AudioPlayerModel: NSObject, ObservableObject, AVAudioPlayerDelegate 
         guard !isInterrupted, let audio else { return }
         do {
             let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.playback, mode: .default,
-                                    options: [.allowAirPlay, .allowBluetoothA2DP])
+            // Playback already supports AirPlay and Bluetooth A2DP. Explicitly
+            // enabling playAndRecord routing options can fail with OSStatus -50.
+            try session.setCategory(.playback, mode: .default, options: [])
             try session.setActive(true)
         } catch {
             errorMessage = "Audio is unavailable: \(error.localizedDescription)"
@@ -248,6 +249,7 @@ final class AudioPlayerModel: NSObject, ObservableObject, AVAudioPlayerDelegate 
             updateNowPlaying()
             return
         }
+        errorMessage = nil
         isPlaying = true
         startTimer()
         updateNowPlaying()
