@@ -4,7 +4,7 @@
 - Remember and reopen the last selected music folder without autoplay.
 - Pause for calls and resume the same track when iOS permits it.
 - Keep physical volume buttons dedicated to volume unless the user clarifies a different intent.
-- Regression tests and real-device checks cover folder access and audio interruptions.
+- Regression tests cover folder access and audio interruptions; the device checklist remains required.
 
 ## Approved identity: Jiza
 Jiza combines Jithin and Elizabeth. The user selected Jiza as the app and repository name.
@@ -15,6 +15,10 @@ Brand/IDENTITY.md records the assets, prompts and colour usage.
 Use a descriptive App Store subtitle as future features ship.
 
 ## Stage 2: Video
+The first increment opens a single video from Files using native full-screen controls, pauses music,
+and releases playback/file access when closed. Simulator tests cover loading, seeking, handoff and errors.
+The user confirmed the preceding music audio-session fix works on their iPhone.
+
 Add a video library and native playback with AVKit. Start with formats/codecs supported by iOS;
 show clear unsupported-format messages. Add resume position, full-screen playback, subtitles
 and Picture in Picture where supported. Keep one active playback session across audio/video.
