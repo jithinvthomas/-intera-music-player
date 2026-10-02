@@ -1,10 +1,19 @@
 ﻿import json
 import pathlib
 import subprocess
+import sys
 
 result = "TestResults.xcresult"
 output = pathlib.Path("test-images")
 output.mkdir(exist_ok=True)
+
+# Xcode 26 replaced the JSON object API with a direct attachment exporter.
+xcode_major = int(subprocess.check_output(["xcodebuild", "-version"], text=True).splitlines()[0].split()[1].split(".")[0])
+if xcode_major >= 26:
+    subprocess.run(["xcrun", "xcresulttool", "export", "attachments",
+                    "--path", result, "--output-path", str(output)], check=True)
+    sys.exit(0)
+
 visited = set()
 
 def get(identifier=None):
