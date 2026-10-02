@@ -52,7 +52,9 @@ final class MusicPlayerUITests: XCTestCase {
     }
 
     private func capture(_ app: XCUIApplication, name: String) {
-        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        // Capture the display: app-only cropping can use stale portrait bounds
+        // after rotation even when the app's accessibility frame is landscape.
+        let screenshot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         screenshot.name = name
         screenshot.lifetime = .keepAlways
         add(screenshot)
