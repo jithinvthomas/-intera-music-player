@@ -16,6 +16,8 @@ targets:
     deploymentTarget: 16.0
     sources:
       - AudioPlayerModel.swift
+      - VideoPlayerModel.swift
+      - VideoPlayerView.swift
       - ContentView.swift
       - InteraMusicPlayerApp.swift
       - Assets.xcassets
@@ -32,6 +34,10 @@ targets:
             LSHandlerRank: Owner
             LSItemContentTypes:
               - public.audio
+          - CFBundleTypeName: Video Files
+            LSHandlerRank: Alternate
+            LSItemContentTypes:
+              - public.movie
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.interaauditsolutions.music
@@ -46,6 +52,7 @@ targets:
     deploymentTarget: 16.0
     sources:
       - AudioPlayerModelTests.swift
+      - VideoPlayerModelTests.swift
       - path: TestFixtures
         buildPhase: resources
     dependencies:

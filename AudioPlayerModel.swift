@@ -23,6 +23,7 @@ final class AudioPlayerModel: NSObject, ObservableObject, AVAudioPlayerDelegate 
     @Published private(set) var currentArtwork: UIImage?
 
     private var audio: AVAudioPlayer?
+    var beforePlayback: (() -> Void)?
     private var timer: Timer?
     private var artworkTask: Task<Void, Never>?
     // Keep the selected folder/file accessible for the entire playlist lifetime.
@@ -229,6 +230,7 @@ final class AudioPlayerModel: NSObject, ObservableObject, AVAudioPlayerDelegate 
 
     func play() {
         guard !isInterrupted, let audio else { return }
+        beforePlayback?()
         do {
             let session = AVAudioSession.sharedInstance()
             // Playback already supports AirPlay and Bluetooth A2DP. Explicitly

@@ -3,11 +3,13 @@ import UniformTypeIdentifiers
 
 struct ContentView: View {
     @EnvironmentObject private var player: AudioPlayerModel
+    @EnvironmentObject private var video: VideoPlayerModel
     @Environment(\.colorScheme) private var scheme
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @AppStorage("jizaAppearance") private var appearance = "system"
     @State private var showImporter = false
     @State private var importingFolder = true
+    @State private var importingVideo = false
     @State private var search = ""
 
     private let cobalt = Color(red: 49 / 255, green: 91 / 255, blue: 235 / 255)
@@ -49,7 +51,7 @@ struct ContentView: View {
         .tint(accent)
         .fileImporter(
             isPresented: $showImporter,
-            allowedContentTypes: importingFolder ? [.folder] : [.audio],
+            allowedContentTypes: importingFolder ? [.folder] : (importingVideo ? [.movie] : [.audio]),
             allowsMultipleSelection: false
         ) { result in
             switch result {
@@ -57,10 +59,14 @@ struct ContentView: View {
                 guard let url = urls.first else { return }
                 search = ""
                 if importingFolder { player.chooseFolder(url) }
+                else if importingVideo { Task { await video.open(url) } }
                 else { player.openIncomingFile(url) }
             case .failure(let error):
                 player.errorMessage = "Unable to open your selection: \(error.localizedDescription)"
             }
+        }
+        .fullScreenCover(isPresented: $video.isPresented, onDismiss: { video.close() }) {
+            VideoPlayerView(video: video)
         }
         .alert("Jiza", isPresented: Binding(
             get: { player.errorMessage != nil },
@@ -99,9 +105,17 @@ struct ContentView: View {
                 }
                 Button {
                     importingFolder = false
+                    importingVideo = false
                     showImporter = true
                 } label: {
                     Label("Open audio file", systemImage: "music.note")
+                }
+                Button {
+                    importingFolder = false
+                    importingVideo = true
+                    showImporter = true
+                } label: {
+                    Label("Open video file", systemImage: "play.rectangle")
                 }
                 Picker("Appearance", selection: $appearance) {
                     Text("System").tag("system")
