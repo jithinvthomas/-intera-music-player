@@ -159,6 +159,21 @@ final class AudioPlayerModelTests: XCTestCase {
         XCTAssertEqual(player.progress, 0.1, accuracy: 0.02)
     }
 
+    func testPlaybackUsesDeviceCompatibleAudioSession() throws {
+        let (player, _) = isolatedPlayer()
+        let fixture = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "without-artwork", withExtension: "mp3"))
+        player.openIncomingFile(fixture)
+        defer { player.pause() }
+
+        XCTAssertNil(player.errorMessage)
+        XCTAssertTrue(player.isPlaying)
+        let session = AVAudioSession.sharedInstance()
+        XCTAssertEqual(session.category, .playback)
+        // These opt-in routes are for playAndRecord. Playback supports them by default.
+        XCTAssertFalse(session.categoryOptions.contains(.allowAirPlay))
+        XCTAssertFalse(session.categoryOptions.contains(.allowBluetoothA2DP))
+    }
+
     func testManualPauseDuringCallCancelsAutomaticResume() throws {
         let (player, _) = isolatedPlayer()
         let fixture = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "without-artwork", withExtension: "mp3"))
